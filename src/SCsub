@@ -1,0 +1,23 @@
+# SCsub
+
+Import('env')
+
+# Gather all of the sources for the module (either in an array or automatic globbing like below)
+sources = Glob("*.cpp")
+
+module_env = env.Clone()
+module_env.Append(CCFLAGS=['-O2'])
+# module_env.Append(CCFLAGS=['-std=c++17']) # Change c++ version
+# module_env.Append(CPPPATH=["path/to/includes"]) # Add include paths
+
+if ARGUMENTS.get('game_shared', 'no').startswith('y'):
+    # Shared lib compilation
+    module_env.Append(CCFLAGS=['-fPIC'])
+    module_env['LIBS'] = []
+    shared_lib = module_env.SharedLibrary(target='#bin/game', source=sources)
+    shared_lib_shim = shared_lib[0].name.rsplit('.', 1)[0]
+    env.Append(LIBS=[shared_lib_shim])
+    env.Append(LIBPATH=['#bin'])
+else:
+    # Static compilation
+    module_env.add_source_files(env.modules_sources, sources)
